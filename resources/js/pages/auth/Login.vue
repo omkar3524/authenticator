@@ -1,111 +1,84 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
+import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { register } from '@/routes';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { Github, Mail, Globe } from 'lucide-vue-next';
 
 defineProps<{
+    providers: Array<{
+        name: string;
+        is_enabled: boolean;
+    }>;
     status?: string;
-    canResetPassword: boolean;
-    canRegister: boolean;
+    error?: string;
 }>();
+
+const getProviderIcon = (name: string) => {
+    switch (name.toLowerCase()) {
+        case 'github': return Github;
+        case 'microsoft': return Mail;
+        case 'google': return Globe;
+        default: return Globe;
+    }
+};
 </script>
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        title="Welcome Back"
+        description="Choose a provider to continue"
     >
         <Head title="Log in" />
 
         <div
             v-if="status"
-            class="mb-4 text-center text-sm font-medium text-green-600"
+            class="mb-4 text-center text-sm font-medium text-green-600 border border-green-200 bg-green-50 p-3 rounded-md"
         >
             {{ status }}
         </div>
 
-        <Form
-            v-bind="store.form()"
-            :reset-on-success="['password']"
-            v-slot="{ errors, processing }"
-            class="flex flex-col gap-6"
+        <div
+            v-if="error"
+            class="mb-4 text-center text-sm font-medium text-red-600 border border-red-200 bg-red-50 p-3 rounded-md"
         >
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        name="email"
-                        required
-                        autofocus
-                        :tabindex="1"
-                        autocomplete="email"
-                        placeholder="email@example.com"
-                    />
-                    <InputError :message="errors.email" />
-                </div>
+            {{ error }}
+        </div>
 
-                <div class="grid gap-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
-                        <TextLink
-                            v-if="canResetPassword"
-                            :href="request()"
-                            class="text-sm"
-                            :tabindex="5"
-                        >
-                            Forgot password?
-                        </TextLink>
-                    </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                        :tabindex="2"
-                        autocomplete="current-password"
-                        placeholder="Password"
-                    />
-                    <InputError :message="errors.password" />
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
-                    </Label>
-                </div>
-
-                <Button
-                    type="submit"
-                    class="mt-4 w-full"
-                    :tabindex="4"
-                    :disabled="processing"
-                    data-test="login-button"
+        <div class="flex flex-col gap-4">
+            <template v-for="provider in providers" :key="provider.name">
+                <a 
+                    :href="route('login.redirect', provider.name)"
+                    class="w-full"
                 >
-                    <Spinner v-if="processing" />
-                    Log in
-                </Button>
-            </div>
+                    <Button
+                        variant="outline"
+                        class="w-full flex items-center justify-center gap-3 py-6 text-base hover:bg-muted transition-colors"
+                    >
+                        <component :is="getProviderIcon(provider.name)" class="w-5 h-5" />
+                        Continue with {{ provider.name.charAt(0).toUpperCase() + provider.name.slice(1) }}
+                    </Button>
+                </a>
+            </template>
 
-            <div
-                class="text-center text-sm text-muted-foreground"
-                v-if="canRegister"
-            >
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+            <div v-if="providers.length === 0" class="text-center text-muted-foreground py-8">
+                No login providers are currently enabled. Please contact an administrator.
             </div>
-        </Form>
+        </div>
+
+        <template #footer>
+            <div class="space-y-4">
+                <div class="text-center text-sm text-muted-foreground">
+                    By continuing, you agree to our Terms of Service and Privacy Policy.
+                </div>
+                <div class="text-center">
+                    <Link
+                        :href="route('login.admin')"
+                        class="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+                    >
+                        Sign in as Administrator
+                    </Link>
+                </div>
+            </div>
+        </template>
     </AuthBase>
 </template>
