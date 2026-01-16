@@ -48,7 +48,7 @@ const getProviderIcon = (name: string) => {
         <div class="flex flex-col gap-4">
             <template v-for="provider in providers" :key="provider.name">
                 <a 
-                    :href="login.url(provider.name)"
+                    :href="'/login/' + provider.name"
                     class="w-full"
                 >
                     <Button
