@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import admin from '@/routes/admin';
 
 const props = defineProps<{
     users: {
@@ -22,7 +23,7 @@ const toggleStatus = (user: any) => {
     const form = useForm({
         is_active: !user.is_active,
     });
-    form.put(route('admin.users.update', user.id));
+    form.put(admin.users.update.url(user.id));
 };
 </script>
 
@@ -68,8 +69,8 @@ const toggleStatus = (user: any) => {
                             </TableCell>
                             <TableCell>
                                 <Switch 
-                                    v-model="user.is_active" 
-                                    @update:checked="toggleStatus(user)"
+                                    :model-value="user.is_active" 
+                                    @update:modelValue="toggleStatus(user)"
                                 />
                             </TableCell>
                             <TableCell class="text-xs text-muted-foreground">

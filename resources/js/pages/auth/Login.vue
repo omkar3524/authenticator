@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Github, Mail, Globe } from 'lucide-vue-next';
+import login from '@/routes/login';
 
 defineProps<{
     providers: Array<{
@@ -47,7 +48,7 @@ const getProviderIcon = (name: string) => {
         <div class="flex flex-col gap-4">
             <template v-for="provider in providers" :key="provider.name">
                 <a 
-                    :href="route('login.redirect', provider.name)"
+                    :href="login.url(provider.name)"
                     class="w-full"
                 >
                     <Button
@@ -72,7 +73,7 @@ const getProviderIcon = (name: string) => {
                 </div>
                 <div class="text-center">
                     <Link
-                        :href="route('login.admin')"
+                        :href="login.admin.url()"
                         class="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
                     >
                         Sign in as Administrator

@@ -20,4 +20,9 @@ class OauthClient extends Model
         'redirect_uris' => 'array',
         'allowed_scopes' => 'array',
     ];
+    public function providers()
+    {
+        return $this->belongsToMany(SocialProvider::class, 'client_provider')
+            ->withTimestamps();
+    }
 }

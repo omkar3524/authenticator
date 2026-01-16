@@ -20,7 +20,8 @@ class ClientController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Clients/Index', [
-            'clients' => OauthClient::latest()->get()
+            'clients' => OauthClient::with('providers')->latest()->get(),
+            'providers' => \App\Models\SocialProvider::where('is_enabled', true)->get()
         ]);
     }
 
@@ -50,6 +51,8 @@ class ClientController extends Controller
             'redirect_uris.*' => 'required|url',
             'allowed_scopes' => 'nullable|array',
             'is_active' => 'required|boolean',
+            'providers' => 'nullable|array',
+            'providers.*' => 'exists:social_providers,id'
         ]);
 
         $this->clientService->updateClient($client, $data);

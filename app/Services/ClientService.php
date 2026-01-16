@@ -37,6 +37,10 @@ class ClientService
 
     public function updateClient(OauthClient $client, array $data): bool
     {
+        if (isset($data['providers'])) {
+            $client->providers()->sync($data['providers']);
+            unset($data['providers']);
+        }
         return $client->update($data);
     }
 

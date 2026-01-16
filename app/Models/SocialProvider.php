@@ -16,4 +16,9 @@ class SocialProvider extends Model
     protected $casts = [
         'is_enabled' => 'boolean',
     ];
+    public function clients()
+    {
+        return $this->belongsToMany(OauthClient::class, 'client_provider')
+            ->withTimestamps();
+    }
 }
