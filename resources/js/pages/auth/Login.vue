@@ -1,84 +1,86 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Github, Mail, Globe } from 'lucide-vue-next';
-import login from '@/routes/login';
 
-defineProps<{
-    providers: Array<{
-        name: string;
-        is_enabled: boolean;
-    }>;
-    status?: string;
-    error?: string;
-}>();
 
-const getProviderIcon = (name: string) => {
-    switch (name.toLowerCase()) {
-        case 'github': return Github;
-        case 'microsoft': return Mail;
-        case 'google': return Globe;
-        default: return Globe;
-    }
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+});
+
+const submit = () => {
+    form.post('/login', {
+        onFinish: () => form.reset('password'),
+    });
 };
 </script>
 
 <template>
     <AuthBase
-        title="Welcome Back"
-        description="Choose a provider to continue"
+        title="Login"
+        description="Sign in to your account"
     >
-        <Head title="Log in" />
+        <Head title="Login" />
 
-        <div
-            v-if="status"
-            class="mb-4 text-center text-sm font-medium text-green-600 border border-green-200 bg-green-50 p-3 rounded-md"
-        >
-            {{ status }}
-        </div>
-
-        <div
-            v-if="error"
-            class="mb-4 text-center text-sm font-medium text-red-600 border border-red-200 bg-red-50 p-3 rounded-md"
-        >
-            {{ error }}
-        </div>
-
-        <div class="flex flex-col gap-4">
-            <template v-for="provider in providers" :key="provider.name">
-                <a 
-                    :href="'/login/' + provider.name"
-                    class="w-full"
-                >
-                    <Button
-                        variant="outline"
-                        class="w-full flex items-center justify-center gap-3 py-6 text-base hover:bg-muted transition-colors"
-                    >
-                        <component :is="getProviderIcon(provider.name)" class="w-5 h-5" />
-                        Continue with {{ provider.name.charAt(0).toUpperCase() + provider.name.slice(1) }}
-                    </Button>
-                </a>
-            </template>
-
-            <div v-if="providers.length === 0" class="text-center text-muted-foreground py-8">
-                No login providers are currently enabled. Please contact an administrator.
-            </div>
-        </div>
-
-        <template #footer>
-            <div class="space-y-4">
-                <div class="text-center text-sm text-muted-foreground">
-                    By continuing, you agree to our Terms of Service and Privacy Policy.
+        <form @submit.prevent="submit" class="space-y-4">
+            <div class="space-y-2">
+                <Label for="email">Email</Label>
+                <Input
+                    id="email"
+                    type="email"
+                    v-model="form.email"
+                    required
+                    autofocus
+                    placeholder="user@example.com"
+                />
+                <div v-if="form.errors.email" class="text-sm text-red-600">
+                    {{ form.errors.email }}
                 </div>
-                <div class="text-center">
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <Label for="password">Password</Label>
                     <Link
-                        :href="login.admin.url()"
-                        class="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+                        href="/forgot-password"
+                        class="text-sm font-medium text-primary hover:underline"
                     >
-                        Sign in as Administrator
+                        Forgot password?
                     </Link>
                 </div>
+                <Input
+                    id="password"
+                    type="password"
+                    v-model="form.password"
+                    required
+                    placeholder="••••••••"
+                />
+                <div v-if="form.errors.password" class="text-sm text-red-600">
+                    {{ form.errors.password }}
+                </div>
+            </div>
+
+            <Button
+                type="submit"
+                class="w-full"
+                :disabled="form.processing"
+            >
+                Sign In
+            </Button>
+        </form>
+
+        <template #footer>
+            <div class="text-center">
+                <Link
+                    href="/auth"
+                    class="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                    &larr; Login with another provider
+                </Link>
             </div>
         </template>
     </AuthBase>

@@ -7,6 +7,7 @@ use App\Services\AuthService;
 use App\Services\ClientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 class AuthorizationController extends Controller
 {
@@ -39,6 +40,24 @@ class AuthorizationController extends Controller
             return response()->json(['error' => 'invalid_redirect_uri'], 401);
         }
 
+        // SSO Check: If user is already logged in, skip the login page
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if (!$user->is_active) {
+                Auth::logout();
+                return redirect()->route('login')->with('error', 'Your account is deactivated.');
+            }
+
+            // Issue token immediately
+            $token = $this->authService->issueToken($user, $client->client_id, explode(',', $request->scope ?? ''));
+            $this->authService->logAudit($user->id, $client->client_id, 'success', 'SSO Login');
+
+            // Redirect back to client with token
+            $separator = str_contains($request->redirect_uri, '?') ? '&' : '?';
+            return redirect($request->redirect_uri . $separator . 'token=' . $token);
+        }
+
         // Store auth request data in session
         Session::put('auth_request', [
             'client_id' => $request->client_id,
@@ -47,6 +66,6 @@ class AuthorizationController extends Controller
         ]);
 
         // Redirect to a central login page where user chooses provider
-        return redirect()->route('login');
+        return redirect()->route('auth');
     }
 }

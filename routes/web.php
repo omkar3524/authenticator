@@ -12,16 +12,14 @@ use App\Http\Controllers\Auth\AuthorizationController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
+        'canRegister' => false //Features::enabled(Features::registration()),
     ]);
 })->name('home');
 
 // Auth Flow
 Route::get('authorize', [AuthorizationController::class, 'authorize'])->name('authorize');
-Route::get('login', [SocialLoginController::class, 'selectProvider'])->name('login');
-Route::get('admin-login', function () {
-    return Inertia::render('auth/AdminLogin');
-})->name('login.admin');
+Route::get('auth', [SocialLoginController::class, 'selectProvider'])->name('auth');
+Route::get('login', [SocialLoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [SocialLoginController::class, 'loginWithPassword'])->name('login.store');
 
 Route::middleware(['throttle:6,1'])->group(function () {

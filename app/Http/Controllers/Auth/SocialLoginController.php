@@ -37,10 +37,15 @@ class SocialLoginController extends Controller
         ]);
     }
 
+    public function showLoginForm()
+    {
+        return inertia('auth/Login');
+    }
+
     public function selectProvider()
     {
         $providers = SocialProvider::where('is_enabled', true)->get();
-        return inertia('auth/Login', [
+        return inertia('auth/SelectProvider', [
             'providers' => $providers
         ]);
     }
@@ -70,6 +75,9 @@ class SocialLoginController extends Controller
             return redirect()->route('login')->with('error', 'Your account is deactivated.');
         }
 
+        // Login user to establish session (Critical for SSO)
+        Auth::login($user);
+
         // Check for pending auth request
         $authRequest = Session::get('auth_request');
 
@@ -84,8 +92,7 @@ class SocialLoginController extends Controller
             return redirect($authRequest['redirect_uri'] . $separator . 'token=' . $token);
         }
 
-        // If no auth request, just log in locally (maybe for admin access)
-        Auth::login($user);
+        // If no auth request, it's a local login
         $this->authService->logAudit($user->id, null, 'success', 'Local login');
 
         return redirect()->route('dashboard');
